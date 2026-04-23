@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "../components/ui/Button";
 import { env } from "../config/env";
 
@@ -15,6 +15,11 @@ type NearbyHospital = {
   lat: number;
   lon: number;
   name: string;
+};
+
+type UserCoordinates = {
+  lat: number;
+  lon: number;
 };
 
 type GeoapifyPlace = {
@@ -57,6 +62,37 @@ export function LandingPage({
   const [locationError, setLocationError] = useState("");
   const [locationStatus, setLocationStatus] = useState("Enable location access to find hospitals within 2 km.");
   const [searchingHospitals, setSearchingHospitals] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState<UserCoordinates | null>(null);
+
+  const staticMapUrl = useMemo(() => {
+    if (!env.geoapifyApiKey || !userCoordinates) {
+      return "";
+    }
+
+    const visibleHospitals = hospitals.slice(0, 8);
+    const markerEntries = [
+      `lonlat:${userCoordinates.lon},${userCoordinates.lat};type:material;color:%2300263c;icon:user;icontype:material;text:You;whitecircle:no`,
+      ...visibleHospitals.map(
+        (hospital, index) =>
+          `lonlat:${hospital.lon},${hospital.lat};type:material;color:%231e638f;icon:hospital;icontype:material;text:${index + 1};whitecircle:no`
+      )
+    ];
+
+    const params = new URLSearchParams({
+      apiKey: env.geoapifyApiKey,
+      format: "png",
+      height: "420",
+      marker: markerEntries.join("|"),
+      scaleFactor: "2",
+      style: "osm-bright",
+      width: "1200",
+      zoom: visibleHospitals.length ? "14" : "15"
+    });
+
+    params.set("center", `lonlat:${userCoordinates.lon},${userCoordinates.lat}`);
+
+    return `https://maps.geoapify.com/v1/staticmap?${params.toString()}`;
+  }, [hospitals, userCoordinates]);
 
   async function loadNearbyHospitals(latitude: number, longitude: number) {
     if (!env.geoapifyApiKey) {
@@ -103,6 +139,10 @@ export function LandingPage({
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
         try {
+          setUserCoordinates({
+            lat: coords.latitude,
+            lon: coords.longitude
+          });
           setLocationStatus("Searching for hospitals near you...");
           const results = await loadNearbyHospitals(coords.latitude, coords.longitude);
           setHospitals(results);
@@ -113,6 +153,7 @@ export function LandingPage({
           );
         } catch (error) {
           setHospitals([]);
+          setUserCoordinates(null);
           setLocationError(error instanceof Error ? error.message : "Could not find nearby hospitals.");
           setLocationStatus("Try again in a moment.");
         } finally {
@@ -126,6 +167,7 @@ export function LandingPage({
             : "Could not access your location.";
 
         setHospitals([]);
+        setUserCoordinates(null);
         setLocationError(message);
         setLocationStatus("Location is required to search nearby hospitals.");
         setSearchingHospitals(false);
@@ -251,6 +293,28 @@ export function LandingPage({
             ) : null}
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:col-span-2">
+                {staticMapUrl ? (
+                  <>
+                    <img
+                      alt="Map showing your location and nearby hospitals"
+                      className="h-[420px] w-full object-cover"
+                      src={staticMapUrl}
+                    />
+                    <div className="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+                      <p>Your location is marked as "You". Nearby hospitals are numbered on the map.</p>
+                      <p>
+                        Powered by Geoapify, © OpenStreetMap contributors
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex h-[420px] items-center justify-center bg-[linear-gradient(180deg,#eef5fb_0%,#f8fafc_100%)] px-6 text-center text-slate-500">
+                    A hospital map will appear here after location access is granted.
+                  </div>
+                )}
+              </div>
+
               {hospitals.length ? (
                 hospitals.map((hospital) => (
                   <div
