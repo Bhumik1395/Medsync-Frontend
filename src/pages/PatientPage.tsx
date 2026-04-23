@@ -230,7 +230,7 @@ export function PatientPage({
                 <div>
                   <h3 className="mb-4 text-2xl font-semibold text-brand-blue">Recent Reports</h3>
                   <Card className="mb-4 rounded-3xl p-4">
-                    <div className="grid gap-3">
+                    <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr_1fr]">
                       <select
                         className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
                         onChange={(event) => setDoctorFilter(event.target.value)}
@@ -243,37 +243,35 @@ export function PatientPage({
                           </option>
                         ))}
                       </select>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <select
-                          className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
-                          onChange={(event) => setMonthFilter(event.target.value)}
-                          value={monthFilter}
-                        >
-                          <option value="">All months</option>
-                          {Array.from({ length: 12 }, (_, index) => {
-                            const monthValue = String(index + 1).padStart(2, "0");
-                            const monthLabel = new Date(2026, index, 1).toLocaleString("en-US", { month: "long" });
+                      <select
+                        className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                        onChange={(event) => setMonthFilter(event.target.value)}
+                        value={monthFilter}
+                      >
+                        <option value="">All months</option>
+                        {Array.from({ length: 12 }, (_, index) => {
+                          const monthValue = String(index + 1).padStart(2, "0");
+                          const monthLabel = new Date(2026, index, 1).toLocaleString("en-US", { month: "long" });
 
-                            return (
-                              <option key={monthValue} value={monthValue}>
-                                {monthLabel}
-                              </option>
-                            );
-                          })}
-                        </select>
-                        <select
-                          className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
-                          onChange={(event) => setYearFilter(event.target.value)}
-                          value={yearFilter}
-                        >
-                          <option value="">All years</option>
-                          {yearOptions.map((year) => (
-                            <option key={year} value={year}>
-                              {year}
+                          return (
+                            <option key={monthValue} value={monthValue}>
+                              {monthLabel}
                             </option>
-                          ))}
-                        </select>
-                      </div>
+                          );
+                        })}
+                      </select>
+                      <select
+                        className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                        onChange={(event) => setYearFilter(event.target.value)}
+                        value={yearFilter}
+                      >
+                        <option value="">All years</option>
+                        {yearOptions.map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </Card>
                   <div className="space-y-3">
