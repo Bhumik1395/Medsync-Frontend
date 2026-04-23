@@ -226,11 +226,11 @@ export function PatientPage({
             </section>
 
             <section className="grid gap-6 pb-12">
-              <div className="grid gap-6 xl:justify-center xl:grid-cols-[280px_40%]">
+              <div className="grid gap-6 xl:justify-center xl:grid-cols-[360px_40%]">
                 <div>
                   <h3 className="mb-4 text-2xl font-semibold text-brand-blue">Recent Reports</h3>
                   <Card className="mb-4 rounded-3xl p-4">
-                    <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr_1fr]">
+                    <div className="grid gap-3 sm:grid-cols-[2.2fr_1fr_1fr]">
                       <select
                         className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
                         onChange={(event) => setDoctorFilter(event.target.value)}
