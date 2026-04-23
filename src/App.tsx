@@ -57,6 +57,15 @@ function setHashRoute(route: RouteName) {
 }
 
 export function App() {
+  const defaultUploadForm: UploadFormState = {
+    doctorName: "Dr.",
+    fileName: "",
+    findings: "",
+    patientAbha: "",
+    patientName: "",
+    reportDateTime: "",
+    type: "CBC Report"
+  };
   const [route, setRoute] = useState<RouteName>(getRouteFromHash);
   const [patientSection, setPatientSection] = useState<"dashboard" | "profile">("dashboard");
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -75,15 +84,7 @@ export function App() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [hospitalPatients, setHospitalPatients] = useState<HospitalPatient[]>([]);
   const [insuranceRecords, setInsuranceRecords] = useState<InsuranceRecord[]>([]);
-  const [uploadForm, setUploadForm] = useState<UploadFormState>({
-    doctorName: "Dr.",
-    fileName: "",
-    findings: "",
-    patientAbha: "",
-    patientName: "",
-    reportDateTime: "",
-    type: "CBC Report"
-  });
+  const [uploadForm, setUploadForm] = useState<UploadFormState>(defaultUploadForm);
 
   useEffect(() => {
     const onHashChange = () => setRoute(getRouteFromHash());
@@ -161,6 +162,18 @@ export function App() {
     setRoute(routeName);
   }
 
+  function resetAuthForm() {
+    setAuthError("");
+    setEmail("");
+    setName("");
+    setPassword("");
+    setRegisterRole("patient");
+  }
+
+  function resetUploadForm() {
+    setUploadForm(defaultUploadForm);
+  }
+
   async function handleAuthSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setAuthLoading(true);
@@ -178,6 +191,7 @@ export function App() {
       setToken(result.token);
       setUser(result.user);
       setToast(null);
+      resetAuthForm();
       navigate("app");
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Authentication failed.");
@@ -196,6 +210,8 @@ export function App() {
     setInsuranceRecords([]);
     setSelectedReportId(null);
     setPatientSection("dashboard");
+    resetAuthForm();
+    resetUploadForm();
     setToast({
       message: "You have been signed out.",
       title: "Logged out",
@@ -306,15 +322,7 @@ export function App() {
       title: "Upload complete",
       variant: "success"
     });
-    setUploadForm({
-      doctorName: "Dr.",
-      fileName: "",
-      findings: "",
-      patientAbha: "",
-      patientName: "",
-      reportDateTime: "",
-      type: "CBC Report"
-    });
+    resetUploadForm();
 
     if (user?.role === "hospital") {
       const refreshedPatients = await apiGet("/api/hospital/patients", token);
@@ -339,11 +347,13 @@ export function App() {
     return (
       <LandingPage
         onNavigateAuth={() => {
+          resetAuthForm();
           setAuthMode("login");
           navigate("auth");
         }}
         onNavigateHome={() => navigate("landing")}
         onNavigateSignup={() => {
+          resetAuthForm();
           setAuthMode("register");
           navigate("auth");
         }}
@@ -359,14 +369,19 @@ export function App() {
         authMode={authMode}
         email={email}
         name={name}
-        onAuthModeChange={setAuthMode}
+        onAuthModeChange={(mode) => {
+          resetAuthForm();
+          setAuthMode(mode);
+        }}
         onEmailChange={setEmail}
         onNavigateAuth={() => {
+          resetAuthForm();
           setAuthMode("login");
           navigate("auth");
         }}
         onNavigateHome={() => navigate("landing")}
         onNavigateSignup={() => {
+          resetAuthForm();
           setAuthMode("register");
           navigate("auth");
         }}
@@ -396,6 +411,7 @@ export function App() {
         patientProfile={patientProfile}
         reports={reports}
         selectedReportId={selectedReportId}
+        toast={toast}
         user={user}
       />
     );
