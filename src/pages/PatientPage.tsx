@@ -4,17 +4,15 @@ import {
   AlertCircle,
   Camera,
   ChevronRight,
-  ClipboardCheck,
   Trash2,
   Download,
   FileText,
   HeartPulse,
   Image as ImageIcon,
+  Pencil,
   Mail,
   Phone,
-  Plus,
-  Share2,
-  Sparkles
+  Share2
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -27,7 +25,6 @@ type PatientPageProps = {
   activeSection: "dashboard" | "profile";
   onDownloadReport: (reportId: string) => void;
   onDeleteReport: (reportId: string) => void;
-  onGenerateSummary: (reportId: string) => void;
   onLogout: () => void;
   onNavigateHome: () => void;
   onSaveProfile: (profile: {
@@ -54,7 +51,6 @@ export function PatientPage({
   activeSection,
   onDownloadReport,
   onDeleteReport,
-  onGenerateSummary,
   onLogout,
   onNavigateHome,
   onSaveProfile,
@@ -89,14 +85,6 @@ export function PatientPage({
   useEffect(() => {
     setProfileForm(defaultProfileForm);
   }, [defaultProfileForm]);
-
-  const reportHighlights = selectedReport?.findings
-    ? selectedReport.findings
-        .split(/[.\n]/)
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .slice(0, 3)
-    : [];
   const recentVisit = patientProfile?.appointments[0]?.date
     ? new Date(patientProfile.appointments[0].date).toLocaleDateString("en-US", {
         day: "numeric",
@@ -368,62 +356,6 @@ export function PatientPage({
                         </div>
                       </div>
 
-                      <div className="space-y-8 p-7">
-                        <div>
-                          <div className="mb-4 flex items-center gap-3">
-                            <ClipboardCheck className="text-brand-blue" size={22} />
-                            <h3 className="text-2xl font-semibold text-app-text">Clinical Findings</h3>
-                          </div>
-
-                          {reportHighlights.length ? (
-                            <div className="space-y-3">
-                              {reportHighlights.map((item, index) => (
-                                <div
-                                  className="grid gap-2 border-b border-app-border py-3 text-sm md:grid-cols-[1.2fr_0.8fr]"
-                                  key={`${item}-${index}`}
-                                >
-                                  <span className="font-medium text-app-text">{item}</span>
-                                  <span className="text-app-text-secondary">
-                                    {index === 0 ? "Within expected range" : index === 1 ? "Needs review" : "Stable"}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="leading-copy text-app-text-secondary">{selectedReport.findings}</p>
-                          )}
-
-                          <p className="mt-4 text-sm italic text-app-text-secondary">
-                            {selectedReport.findings || "No detailed findings were provided for this report."}
-                          </p>
-                        </div>
-
-                        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <Sparkles className="text-amber-700" size={20} />
-                              <h4 className="text-2xl font-semibold text-amber-700">MedSync AI Insights</h4>
-                            </div>
-                            <span className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-bold tracking-[0.15em] text-amber-900">
-                              EXPERIMENTAL
-                            </span>
-                          </div>
-
-                          <p className="leading-copy text-amber-950">
-                            {selectedReport.aiSummary || "No AI summary has been generated yet."}
-                          </p>
-
-                          <button
-                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-amber-700 transition-colors hover:text-amber-900"
-                            onClick={() => onGenerateSummary(selectedReport.id)}
-                            type="button"
-                          >
-                            <Sparkles size={16} />
-                            Generate deeper AI analysis
-                          </button>
-                        </div>
-                      </div>
-
                       <div className="flex items-center gap-3 border-t border-app-border bg-slate-50 p-7">
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-semibold text-brand-blue shadow-sm">
                           {selectedReport.doctorName
@@ -628,7 +560,7 @@ export function PatientPage({
           onClick={() => onSectionChange("profile")}
           type="button"
         >
-          <Plus size={24} />
+          <Pencil size={22} />
         </button>
       ) : (
         <div className="fixed bottom-0 left-0 h-1 w-full bg-gradient-to-r from-brand-blue via-sky-500 to-brand-blue-secondary opacity-50" />
