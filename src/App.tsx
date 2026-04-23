@@ -3,6 +3,7 @@ import { apiDelete, apiGet, apiGetFile, apiPost } from "./services/api";
 import type {
   HospitalPatient,
   HospitalPatientPreview,
+  InsuranceProvider,
   InsuranceRecord,
   PatientProfile,
   Report,
@@ -83,6 +84,7 @@ export function App() {
   const [reports, setReports] = useState<Report[]>([]);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [hospitalPatients, setHospitalPatients] = useState<HospitalPatient[]>([]);
+  const [insuranceProviders, setInsuranceProviders] = useState<InsuranceProvider[]>([]);
   const [insuranceRecords, setInsuranceRecords] = useState<InsuranceRecord[]>([]);
   const [uploadForm, setUploadForm] = useState<UploadFormState>(defaultUploadForm);
 
@@ -121,17 +123,20 @@ export function App() {
     setPatientProfile(null);
     setReports([]);
     setHospitalPatients([]);
+    setInsuranceProviders([]);
     setInsuranceRecords([]);
 
     const load = async () => {
       if (user.role === "patient") {
-        const [profilePayload, reportsPayload] = await Promise.all([
+        const [profilePayload, reportsPayload, providersPayload] = await Promise.all([
           apiGet("/api/patient/profile", token),
-          apiGet("/api/patient/reports", token)
+          apiGet("/api/patient/reports", token),
+          apiGet("/api/insurance/providers", token)
         ]);
 
         setPatientProfile(profilePayload.patient);
         setReports(reportsPayload.reports);
+        setInsuranceProviders(providersPayload.providers);
         setSelectedReportId(reportsPayload.reports[0]?.id || null);
       }
 
@@ -207,6 +212,7 @@ export function App() {
     setPatientProfile(null);
     setReports([]);
     setHospitalPatients([]);
+    setInsuranceProviders([]);
     setInsuranceRecords([]);
     setSelectedReportId(null);
     setPatientSection("dashboard");
@@ -220,13 +226,13 @@ export function App() {
     navigate("landing");
   }
 
-  async function handleShareReport(reportId: string, policyNumber: string) {
+  async function handleShareReport(reportId: string, insuranceUserId: string, policyNumber: string) {
     if (!token) {
       return;
     }
 
     try {
-      await apiPost("/api/patient/forward-report", { policyNumber, reportId }, token);
+      await apiPost("/api/patient/forward-report", { insuranceUserId, policyNumber, reportId }, token);
       setToast({
         message: "The hospital-issued report was forwarded to insurance successfully.",
         title: "Forwarded to insurance",
@@ -432,6 +438,7 @@ export function App() {
         onSaveProfile={handleSavePatientProfile}
         onSectionChange={setPatientSection}
         onSelectReport={setSelectedReportId}
+        insuranceProviders={insuranceProviders}
         onShareReport={handleShareReport}
         pageLoading={pageLoading}
         patientProfile={patientProfile}
