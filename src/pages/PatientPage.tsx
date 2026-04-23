@@ -18,8 +18,9 @@ import {
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Container } from "../components/ui/Container";
+import { Toast } from "../components/ui/Toast";
 import { TopNav } from "../components/ui/TopNav";
-import type { PatientProfile, Report, User } from "../types/app";
+import type { PatientProfile, Report, ToastState, User } from "../types/app";
 
 type PatientPageProps = {
   activeSection: "dashboard" | "profile";
@@ -43,6 +44,7 @@ type PatientPageProps = {
   patientProfile: PatientProfile | null;
   reports: Report[];
   selectedReportId: string | null;
+  toast: ToastState | null;
   user: User;
 };
 
@@ -60,6 +62,7 @@ export function PatientPage({
   patientProfile,
   reports,
   selectedReportId,
+  toast,
   user
 }: PatientPageProps) {
   const bloodGroupOptions = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -154,6 +157,11 @@ export function PatientPage({
         userLabel={`${user.name} - Patient`}
       />
       <Container>
+        {toast ? (
+          <section className="pt-6">
+            <Toast message={toast.message} title={toast.title} variant={toast.variant} />
+          </section>
+        ) : null}
         {activeSection === "dashboard" ? (
           <>
             <section className="py-8">
