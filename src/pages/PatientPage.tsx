@@ -67,13 +67,13 @@ export function PatientPage({
   const selectedReport = reports.find((report) => report.id === selectedReportId) || null;
   const defaultProfileForm = useMemo(
     () => ({
-      abhaNumber: patientProfile?.abhaNumber || "91-2234-5567-8890",
-      age: patientProfile?.age ? String(patientProfile.age) : "45",
-      bloodGroup: patientProfile?.bloodGroup || "O+",
+      abhaNumber: patientProfile?.abhaNumber || "",
+      age: patientProfile?.age ? String(patientProfile.age) : "",
+      bloodGroup: patientProfile?.bloodGroup || "",
       email: user.email,
       fullName: patientProfile?.name || user.name,
-      phone: patientProfile?.phone || "+91 98765-43210",
-      sex: patientProfile?.sex || "Male"
+      phone: patientProfile?.phone || "",
+      sex: patientProfile?.sex || ""
     }),
     [patientProfile, user.email, user.name]
   );
@@ -98,8 +98,8 @@ export function PatientPage({
         month: "short",
         year: "numeric"
       })
-    : "Oct 24, 2023";
-  const quickTags = patientProfile?.history.length ? patientProfile.history.slice(0, 2) : ["Diabetes", "Hypertension"];
+    : "Not set";
+  const quickTags = patientProfile?.history.length ? patientProfile.history.slice(0, 2) : [];
 
   function updateProfileField(field: keyof typeof profileForm, value: string) {
     setProfileForm((current) => ({ ...current, [field]: value }));
@@ -165,7 +165,7 @@ export function PatientPage({
                     Welcome back, {patientProfile?.name?.split(" ")[0] || user.name.split(" ")[0]}
                   </h1>
                   <p className="mt-4 text-lg text-sky-100">
-                    {user.email} • Patient ID: {patientProfile?.abhaNumber || "MS-99210"}
+                    {user.email} • Patient ID: {patientProfile?.abhaNumber || "Not set"}
                   </p>
                   {pageLoading ? <p className="mt-4 text-sm text-sky-100/90">Loading your dashboard...</p> : null}
                 </div>
@@ -191,10 +191,10 @@ export function PatientPage({
                   {patientProfile ? (
                     <div className="grid gap-4 sm:grid-cols-2">
                       {[
-                        ["ABHA NUMBER", patientProfile.abhaNumber],
-                        ["BLOOD GROUP", patientProfile.bloodGroup],
-                        ["AGE", `${patientProfile.age} Years`],
-                        ["SEX", profileForm.sex]
+                        ["ABHA NUMBER", patientProfile.abhaNumber || "Not set"],
+                        ["BLOOD GROUP", patientProfile.bloodGroup || "Not set"],
+                        ["AGE", patientProfile.age ? `${patientProfile.age} Years` : "Not set"],
+                        ["SEX", patientProfile.sex || "Not set"]
                       ].map(([label, value]) => (
                         <div className="rounded-2xl bg-slate-50 p-5" key={label}>
                           <p className="text-xs font-semibold uppercase tracking-[0.15em] text-app-text-secondary">
@@ -212,8 +212,8 @@ export function PatientPage({
                 <Card className="rounded-3xl p-7">
                   <h3 className="text-2xl font-semibold text-brand-blue">Medical History</h3>
                   <div className="mt-5 space-y-3">
-                    {(patientProfile?.history.length ? patientProfile.history : ["Chronic Hypertension", "Penicillin Allergy"]).map(
-                      (item, index) => (
+                    {patientProfile?.history.length ? (
+                      patientProfile.history.map((item, index) => (
                         <div className="flex items-center gap-4 rounded-2xl border border-app-border p-4" key={item}>
                           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-50 text-brand-blue">
                             {index === 0 ? <Activity size={20} /> : <AlertCircle size={20} />}
@@ -221,11 +221,13 @@ export function PatientPage({
                           <div>
                             <p className="font-semibold text-app-text">{item}</p>
                             <p className="text-sm text-app-text-secondary">
-                              {index === 0 ? "Diagnosed June 2021" : "Severe reaction reported"}
+                              {index === 0 ? "Recorded in your profile" : "Added to your history"}
                             </p>
                           </div>
                         </div>
-                      )
+                      ))
+                    ) : (
+                      <p className="text-sm text-app-text-secondary">No medical history added yet.</p>
                     )}
                   </div>
                 </Card>
@@ -233,22 +235,20 @@ export function PatientPage({
                 <Card className="rounded-3xl p-7">
                   <h3 className="text-2xl font-semibold text-brand-blue">Notifications</h3>
                   <div className="mt-5 space-y-4">
-                    {(patientProfile?.notifications.length
-                      ? patientProfile.notifications
-                      : [
-                          { id: "one", text: "Your report for Blood Work (CBC) is now available for review." },
-                          { id: "two", text: "Prescription for Lisinopril was renewed by Dr. Mitchell." }
-                        ]
-                    ).map((notification, index) => (
-                      <div className="flex gap-3" key={notification.id}>
-                        <span
-                          className={`mt-2 h-2.5 w-2.5 rounded-full ${
-                            index === 0 ? "bg-brand-blue" : "bg-slate-300"
-                          }`}
-                        />
-                        <p className={index === 0 ? "text-app-text" : "text-app-text-secondary"}>{notification.text}</p>
-                      </div>
-                    ))}
+                    {patientProfile?.notifications.length ? (
+                      patientProfile.notifications.map((notification, index) => (
+                        <div className="flex gap-3" key={notification.id}>
+                          <span
+                            className={`mt-2 h-2.5 w-2.5 rounded-full ${
+                              index === 0 ? "bg-brand-blue" : "bg-slate-300"
+                            }`}
+                          />
+                          <p className={index === 0 ? "text-app-text" : "text-app-text-secondary"}>{notification.text}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-app-text-secondary">No notifications yet.</p>
+                    )}
                   </div>
                 </Card>
               </div>
@@ -377,7 +377,7 @@ export function PatientPage({
                           )}
 
                           <p className="mt-4 text-sm italic text-app-text-secondary">
-                            {selectedReport.findings || "All parameters are within normal clinical limits."}
+                            {selectedReport.findings || "No detailed findings were provided for this report."}
                           </p>
                         </div>
 
@@ -393,8 +393,7 @@ export function PatientPage({
                           </div>
 
                           <p className="leading-copy text-amber-950">
-                            {selectedReport.aiSummary ||
-                              "Your report looks generally stable. The notable values should be reviewed alongside your history, but nothing here suggests an urgent issue."}
+                            {selectedReport.aiSummary || "No AI summary has been generated yet."}
                           </p>
 
                           <button
@@ -410,11 +409,15 @@ export function PatientPage({
 
                       <div className="flex items-center gap-3 border-t border-app-border bg-slate-50 p-7">
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-sm font-semibold text-brand-blue shadow-sm">
-                          SM
+                          {selectedReport.doctorName
+                            .split(" ")
+                            .slice(0, 2)
+                            .map((part) => part[0])
+                            .join("")}
                         </div>
                         <div>
-                          <p className="font-semibold text-app-text">Verified by Dr. Sarah Mitchell</p>
-                          <p className="text-sm text-app-text-secondary">Chief Pathologist • City Central Laboratory</p>
+                          <p className="font-semibold text-app-text">Report verified</p>
+                          <p className="text-sm text-app-text-secondary">Uploaded by {selectedReport.doctorName}</p>
                         </div>
                       </div>
                     </>
@@ -440,11 +443,7 @@ export function PatientPage({
               </div>
 
               <div className="flex items-center gap-4">
-                <Button
-                  className="px-6 py-3"
-                  onClick={() => setProfileForm(defaultProfileForm)}
-                  variant="secondary"
-                >
+                <Button className="px-6 py-3" onClick={() => setProfileForm(defaultProfileForm)} variant="secondary">
                   Cancel
                 </Button>
                 <Button className="px-6 py-3" onClick={() => onSaveProfile(profileForm)} type="button">
@@ -459,9 +458,10 @@ export function PatientPage({
                   <div className="relative mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-slate-100 bg-sky-50 text-4xl font-bold text-brand-blue">
                     {profileForm.fullName
                       .split(" ")
+                      .filter(Boolean)
                       .slice(0, 2)
                       .map((part) => part[0])
-                      .join("")}
+                      .join("") || "?"}
                     <button
                       className="absolute bottom-1 right-1 inline-flex h-11 w-11 items-center justify-center rounded-full bg-brand-blue text-white shadow-card"
                       type="button"
@@ -472,7 +472,7 @@ export function PatientPage({
 
                   <h2 className="text-4xl font-semibold text-app-text">{profileForm.fullName}</h2>
                   <p className="mt-2 text-lg text-app-text-secondary">
-                    Patient ID: {patientProfile?.abhaNumber || "MS-88291"}
+                    Patient ID: {patientProfile?.abhaNumber || "Not set"}
                   </p>
 
                   <div className="mt-8 space-y-3 text-left">
@@ -501,9 +501,10 @@ export function PatientPage({
                         key={tag}
                       >
                         {tag}
-                        <span aria-hidden="true">×</span>
+                        <span aria-hidden="true">x</span>
                       </span>
                     ))}
+                    {!quickTags.length ? <p className="text-sm text-app-text-secondary">No tags yet.</p> : null}
                     <button
                       className="inline-flex items-center gap-2 rounded-full border-2 border-dashed border-app-border px-4 py-2 text-sm text-app-text-secondary transition-colors hover:bg-slate-50"
                       type="button"
@@ -558,9 +559,10 @@ export function PatientPage({
                         onChange={(event) => updateProfileField("sex", event.target.value)}
                         value={profileForm.sex}
                       >
-                        <option>Male</option>
-                        <option>Female</option>
-                        <option>Other</option>
+                        <option value="">Select sex</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
                       </select>
                     </label>
 
@@ -573,6 +575,7 @@ export function PatientPage({
                         onChange={(event) => updateProfileField("bloodGroup", event.target.value)}
                         value={profileForm.bloodGroup}
                       >
+                        <option value="">Select blood group</option>
                         {bloodGroupOptions.map((group) => (
                           <option key={group} value={group}>
                             {group}
@@ -590,7 +593,10 @@ export function PatientPage({
                         PHONE NUMBER
                       </span>
                       <div className="relative">
-                        <Phone className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-app-text-secondary" size={18} />
+                        <Phone
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-app-text-secondary"
+                          size={18}
+                        />
                         <input
                           className="w-full rounded-2xl border border-app-border py-4 pl-12 pr-4 outline-none transition focus:border-brand-blue"
                           onChange={(event) => updateProfileField("phone", event.target.value)}
@@ -604,7 +610,10 @@ export function PatientPage({
                         EMAIL ADDRESS
                       </span>
                       <div className="relative">
-                        <Mail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-app-text-secondary" size={18} />
+                        <Mail
+                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-app-text-secondary"
+                          size={18}
+                        />
                         <input
                           className="w-full rounded-2xl border border-app-border py-4 pl-12 pr-4 outline-none transition focus:border-brand-blue"
                           onChange={(event) => updateProfileField("email", event.target.value)}
@@ -612,7 +621,6 @@ export function PatientPage({
                         />
                       </div>
                     </label>
-
                   </div>
                 </Card>
               </div>
