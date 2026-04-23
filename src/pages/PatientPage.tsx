@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
-  AlertCircle,
   Camera,
   ChevronRight,
   Trash2,
@@ -38,7 +37,7 @@ type PatientPageProps = {
     sex: string;
   }) => Promise<void>;
   onSectionChange: (section: "dashboard" | "profile") => void;
-  onSelectReport: (reportId: string) => void;
+  onSelectReport: (reportId: string | null) => void;
   onShareReport: (reportId: string, insuranceUserId: string, policyNumber: string) => Promise<void>;
   pageLoading: boolean;
   patientProfile: PatientProfile | null;
@@ -67,7 +66,6 @@ export function PatientPage({
   user
 }: PatientPageProps) {
   const bloodGroupOptions = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-  const selectedReport = reports.find((report) => report.id === selectedReportId) || null;
   const defaultProfileForm = useMemo(
     () => ({
       abhaNumber: patientProfile?.abhaNumber || "",
@@ -81,13 +79,60 @@ export function PatientPage({
     [patientProfile, user.email, user.name]
   );
   const [profileForm, setProfileForm] = useState(defaultProfileForm);
+  const [doctorFilter, setDoctorFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [selectedInsuranceId, setSelectedInsuranceId] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
   const [policyNumber, setPolicyNumber] = useState("");
   const [shareError, setShareError] = useState("");
 
   useEffect(() => {
     setProfileForm(defaultProfileForm);
   }, [defaultProfileForm]);
+
+  const doctorOptions = useMemo(
+    () => Array.from(new Set(reports.map((report) => report.doctorName).filter(Boolean))).sort((left, right) => left.localeCompare(right)),
+    [reports]
+  );
+  const yearOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          reports
+            .map((report) => new Date(report.createdAt))
+            .filter((date) => !Number.isNaN(date.getTime()))
+            .map((date) => String(date.getFullYear()))
+        )
+      ).sort((left, right) => Number(right) - Number(left)),
+    [reports]
+  );
+  const filteredReports = useMemo(
+    () =>
+      reports.filter((report) => {
+        const reportDate = new Date(report.createdAt);
+        const doctorMatches = !doctorFilter || report.doctorName === doctorFilter;
+        const monthMatches = !monthFilter || String(reportDate.getMonth() + 1).padStart(2, "0") === monthFilter;
+        const yearMatches = !yearFilter || String(reportDate.getFullYear()) === yearFilter;
+
+        return doctorMatches && monthMatches && yearMatches;
+      }),
+    [doctorFilter, monthFilter, reports, yearFilter]
+  );
+  const selectedReport = filteredReports.find((report) => report.id === selectedReportId) || filteredReports[0] || null;
+
+  useEffect(() => {
+    if (!filteredReports.length) {
+      if (selectedReportId !== null) {
+        onSelectReport(null);
+      }
+      return;
+    }
+
+    if (!selectedReportId || !filteredReports.some((report) => report.id === selectedReportId)) {
+      onSelectReport(filteredReports[0].id);
+    }
+  }, [filteredReports, onSelectReport, selectedReportId]);
+
   const recentVisit = patientProfile?.appointments[0]?.date
     ? new Date(patientProfile.appointments[0].date).toLocaleDateString("en-US", {
         day: "numeric",
@@ -180,91 +225,60 @@ export function PatientPage({
               </div>
             </section>
 
-            <section className="grid gap-6 pb-12 lg:grid-cols-[0.9fr_1.1fr]">
-              <div className="space-y-6">
-                <Card className="rounded-3xl p-7">
-                  <div className="mb-6 flex items-center justify-between">
-                    <h2 className="text-2xl font-semibold text-brand-blue">Patient Profile</h2>
-                    <button
-                      className="text-sm font-semibold text-brand-blue transition-colors hover:text-brand-blue-secondary"
-                      onClick={() => onSectionChange("profile")}
-                      type="button"
-                    >
-                      Edit Details
-                    </button>
-                  </div>
-
-                  {patientProfile ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {[
-                        ["ABHA NUMBER", patientProfile.abhaNumber || "Not set"],
-                        ["BLOOD GROUP", patientProfile.bloodGroup || "Not set"],
-                        ["AGE", patientProfile.age ? `${patientProfile.age} Years` : "Not set"],
-                        ["SEX", patientProfile.sex || "Not set"]
-                      ].map(([label, value]) => (
-                        <div className="rounded-2xl bg-slate-50 p-5" key={label}>
-                          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-app-text-secondary">
-                            {label}
-                          </p>
-                          <p className="mt-3 text-2xl font-semibold text-app-text">{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-app-text-secondary">No patient data available.</p>
-                  )}
-                </Card>
-
-                <Card className="rounded-3xl p-7">
-                  <h3 className="text-2xl font-semibold text-brand-blue">Medical History</h3>
-                  <div className="mt-5 space-y-3">
-                    {patientProfile?.history.length ? (
-                      patientProfile.history.map((item, index) => (
-                        <div className="flex items-center gap-4 rounded-2xl border border-app-border p-4" key={item}>
-                          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-sky-50 text-brand-blue">
-                            {index === 0 ? <Activity size={20} /> : <AlertCircle size={20} />}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-app-text">{item}</p>
-                            <p className="text-sm text-app-text-secondary">
-                              {index === 0 ? "Recorded in your profile" : "Added to your history"}
-                            </p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-app-text-secondary">No medical history added yet.</p>
-                    )}
-                  </div>
-                </Card>
-
-                <Card className="rounded-3xl p-7">
-                  <h3 className="text-2xl font-semibold text-brand-blue">Notifications</h3>
-                  <div className="mt-5 space-y-4">
-                    {patientProfile?.notifications.length ? (
-                      patientProfile.notifications.map((notification, index) => (
-                        <div className="flex gap-3" key={notification.id}>
-                          <span
-                            className={`mt-2 h-2.5 w-2.5 rounded-full ${
-                              index === 0 ? "bg-brand-blue" : "bg-slate-300"
-                            }`}
-                          />
-                          <p className={index === 0 ? "text-app-text" : "text-app-text-secondary"}>{notification.text}</p>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-app-text-secondary">No notifications yet.</p>
-                    )}
-                  </div>
-                </Card>
-              </div>
-
+            <section className="grid gap-6 pb-12">
               <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
                 <div>
                   <h3 className="mb-4 text-2xl font-semibold text-brand-blue">Recent Reports</h3>
+                  <Card className="mb-4 rounded-3xl p-4">
+                    <div className="grid gap-3">
+                      <select
+                        className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                        onChange={(event) => setDoctorFilter(event.target.value)}
+                        value={doctorFilter}
+                      >
+                        <option value="">All doctors</option>
+                        {doctorOptions.map((doctorName) => (
+                          <option key={doctorName} value={doctorName}>
+                            {doctorName}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <select
+                          className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                          onChange={(event) => setMonthFilter(event.target.value)}
+                          value={monthFilter}
+                        >
+                          <option value="">All months</option>
+                          {Array.from({ length: 12 }, (_, index) => {
+                            const monthValue = String(index + 1).padStart(2, "0");
+                            const monthLabel = new Date(2026, index, 1).toLocaleString("en-US", { month: "long" });
+
+                            return (
+                              <option key={monthValue} value={monthValue}>
+                                {monthLabel}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <select
+                          className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                          onChange={(event) => setYearFilter(event.target.value)}
+                          value={yearFilter}
+                        >
+                          <option value="">All years</option>
+                          {yearOptions.map((year) => (
+                            <option key={year} value={year}>
+                              {year}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </Card>
                   <div className="space-y-3">
-                    {reports.length ? (
-                      reports.map((report) => {
+                    {filteredReports.length ? (
+                      filteredReports.map((report) => {
                         const category = getReportCategory(report.type);
                         const ReportIcon = category.icon;
 
@@ -305,7 +319,7 @@ export function PatientPage({
                       })
                     ) : (
                       <Card className="rounded-3xl p-5">
-                        <p className="text-sm text-app-text-secondary">No reports are available yet.</p>
+                        <p className="text-sm text-app-text-secondary">No reports match the selected filters.</p>
                       </Card>
                     )}
                   </div>
