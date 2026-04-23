@@ -512,6 +512,7 @@ export function PatientPage({
                       <input
                         className="rounded-2xl border border-app-border px-4 py-4 outline-none transition focus:border-brand-blue"
                         onChange={(event) => updateProfileField("abhaNumber", event.target.value)}
+                        placeholder="0000 0000 0000 00"
                         value={profileForm.abhaNumber}
                       />
                     </label>
