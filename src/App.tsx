@@ -242,24 +242,6 @@ export function App() {
     }
   }
 
-  async function handleSummarize(reportId: string) {
-    if (!token) {
-      return;
-    }
-
-    const payload = await apiPost("/api/ai/summarize", { reportId }, token);
-    setReports((currentReports) =>
-      currentReports.map((report) =>
-        report.id === reportId ? { ...report, aiSummary: payload.summary } : report
-      )
-    );
-    setToast({
-      message: "A summary was generated for this report.",
-      title: "Summary ready",
-      variant: "success"
-    });
-  }
-
   async function handleDownloadReport(reportId: string) {
     if (!token) {
       return;
@@ -445,7 +427,6 @@ export function App() {
         activeSection={patientSection}
         onDeleteReport={handleDeleteReport}
         onDownloadReport={handleDownloadReport}
-        onGenerateSummary={handleSummarize}
         onLogout={handleLogout}
         onNavigateHome={() => navigate("landing")}
         onSaveProfile={handleSavePatientProfile}
