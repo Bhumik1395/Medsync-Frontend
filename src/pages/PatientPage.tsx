@@ -19,10 +19,11 @@ import { Card } from "../components/ui/Card";
 import { Container } from "../components/ui/Container";
 import { Toast } from "../components/ui/Toast";
 import { TopNav } from "../components/ui/TopNav";
-import type { PatientProfile, Report, ToastState, User } from "../types/app";
+import type { InsuranceProvider, PatientProfile, Report, ToastState, User } from "../types/app";
 
 type PatientPageProps = {
   activeSection: "dashboard" | "profile";
+  insuranceProviders: InsuranceProvider[];
   onDownloadReport: (reportId: string) => void;
   onDeleteReport: (reportId: string) => void;
   onLogout: () => void;
@@ -38,7 +39,7 @@ type PatientPageProps = {
   }) => Promise<void>;
   onSectionChange: (section: "dashboard" | "profile") => void;
   onSelectReport: (reportId: string) => void;
-  onShareReport: (reportId: string, policyNumber: string) => Promise<void>;
+  onShareReport: (reportId: string, insuranceUserId: string, policyNumber: string) => Promise<void>;
   pageLoading: boolean;
   patientProfile: PatientProfile | null;
   reports: Report[];
@@ -49,6 +50,7 @@ type PatientPageProps = {
 
 export function PatientPage({
   activeSection,
+  insuranceProviders,
   onDownloadReport,
   onDeleteReport,
   onLogout,
@@ -79,6 +81,7 @@ export function PatientPage({
     [patientProfile, user.email, user.name]
   );
   const [profileForm, setProfileForm] = useState(defaultProfileForm);
+  const [selectedInsuranceId, setSelectedInsuranceId] = useState("");
   const [policyNumber, setPolicyNumber] = useState("");
   const [shareError, setShareError] = useState("");
 
@@ -98,6 +101,11 @@ export function PatientPage({
   }
 
   async function handleForwardToInsurance(reportId: string) {
+    if (!selectedInsuranceId) {
+      setShareError("Select an insurance company before forwarding the report.");
+      return;
+    }
+
     if (!policyNumber.trim()) {
       setShareError("Enter your insurance policy number before forwarding the report.");
       return;
@@ -105,7 +113,8 @@ export function PatientPage({
 
     try {
       setShareError("");
-      await onShareReport(reportId, policyNumber.trim());
+      await onShareReport(reportId, selectedInsuranceId, policyNumber.trim());
+      setSelectedInsuranceId("");
       setPolicyNumber("");
     } catch (error) {
       setShareError(error instanceof Error ? error.message : "Could not forward the report.");
@@ -342,16 +351,28 @@ export function PatientPage({
                         </div>
                         <div className="rounded-3xl border border-app-border bg-slate-50 p-5">
                           <p className="text-sm font-semibold text-brand-blue">Insurance Forwarding</p>
+                          <select
+                            className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                            onChange={(event) => setSelectedInsuranceId(event.target.value)}
+                            value={selectedInsuranceId}
+                          >
+                            <option value="">Select insurance company</option>
+                            {insuranceProviders.map((provider) => (
+                              <option key={provider.id} value={provider.id}>
+                                {provider.name}
+                              </option>
+                            ))}
+                          </select>
                           <input
                             className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
                             onChange={(event) => setPolicyNumber(event.target.value)}
-                            placeholder="Enter your insurance policy number"
+                            placeholder="Enter your policy number"
                             value={policyNumber}
                           />
                           {shareError ? <p className="mt-2 text-sm text-status-error">{shareError}</p> : null}
                           <p className="mt-3 text-sm text-app-text-secondary">
-                            Only the original hospital-issued report is forwarded. Patients cannot change or tamper
-                            with report contents.
+                            Select a registered insurance company and provide the matching policy number. Only the
+                            original hospital-issued report is forwarded.
                           </p>
                         </div>
                       </div>
