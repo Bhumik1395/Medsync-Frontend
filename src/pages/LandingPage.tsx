@@ -71,10 +71,10 @@ export function LandingPage({
 
     const visibleHospitals = hospitals.slice(0, 8);
     const markerEntries = [
-      `lonlat:${userCoordinates.lon},${userCoordinates.lat};type:material;color:%2300263c;icon:user;icontype:material;text:You;whitecircle:no`,
+      `lonlat:${userCoordinates.lon},${userCoordinates.lat};type:material;color:%2300263c;size:small;text:U;whitecircle:no`,
       ...visibleHospitals.map(
         (hospital, index) =>
-          `lonlat:${hospital.lon},${hospital.lat};type:material;color:%231e638f;icon:hospital;icontype:material;text:${index + 1};whitecircle:no`
+          `lonlat:${hospital.lon},${hospital.lat};type:material;color:%231e638f;size:small;text:${index + 1};whitecircle:no`
       )
     ];
 
