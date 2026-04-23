@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Button } from "../components/ui/Button";
+import { env } from "../config/env";
 
 type LandingPageProps = {
   onNavigateAuth: () => void;
@@ -6,11 +8,132 @@ type LandingPageProps = {
   onNavigateSignup: () => void;
 };
 
+type NearbyHospital = {
+  address: string;
+  distance: number | null;
+  id: string;
+  lat: number;
+  lon: number;
+  name: string;
+};
+
+type GeoapifyPlace = {
+  properties?: {
+    address_line1?: string;
+    address_line2?: string;
+    city?: string;
+    distance?: number;
+    formatted?: string;
+    lat?: number;
+    lon?: number;
+    name?: string;
+    place_id?: string;
+  };
+};
+
+function formatDistance(distance: number | null) {
+  if (distance === null) {
+    return "Distance unavailable";
+  }
+
+  if (distance < 1000) {
+    return `${Math.round(distance)} m away`;
+  }
+
+  return `${(distance / 1000).toFixed(1)} km away`;
+}
+
+function getHospitalAddress(place: GeoapifyPlace) {
+  const { address_line1, address_line2, city, formatted } = place.properties || {};
+  return address_line1 || address_line2 || formatted || city || "Address unavailable";
+}
+
 export function LandingPage({
   onNavigateAuth,
   onNavigateHome,
   onNavigateSignup
 }: LandingPageProps) {
+  const [hospitals, setHospitals] = useState<NearbyHospital[]>([]);
+  const [locationError, setLocationError] = useState("");
+  const [locationStatus, setLocationStatus] = useState("Enable location access to find hospitals within 2 km.");
+  const [searchingHospitals, setSearchingHospitals] = useState(false);
+
+  async function loadNearbyHospitals(latitude: number, longitude: number) {
+    if (!env.geoapifyApiKey) {
+      throw new Error("Geoapify API key is missing. Add VITE_GEOAPIFY_API_KEY to your environment.");
+    }
+
+    const params = new URLSearchParams({
+      apiKey: env.geoapifyApiKey,
+      bias: `proximity:${longitude},${latitude}`,
+      categories: "healthcare.hospital",
+      filter: `circle:${longitude},${latitude},2000`,
+      limit: "8"
+    });
+
+    const response = await fetch(`https://api.geoapify.com/v2/places?${params.toString()}`);
+
+    if (!response.ok) {
+      throw new Error("Could not load nearby hospitals right now.");
+    }
+
+    const payload = await response.json();
+    const results = Array.isArray(payload.features) ? payload.features : [];
+
+    return results.map((place: GeoapifyPlace, index: number) => ({
+      address: getHospitalAddress(place),
+      distance: place.properties?.distance ?? null,
+      id: place.properties?.place_id || `${place.properties?.name || "hospital"}-${index}`,
+      lat: place.properties?.lat ?? latitude,
+      lon: place.properties?.lon ?? longitude,
+      name: place.properties?.name || "Nearby hospital"
+    }));
+  }
+
+  function handleFindNearbyHospitals() {
+    if (!navigator.geolocation) {
+      setLocationError("Your browser does not support location access.");
+      return;
+    }
+
+    setSearchingHospitals(true);
+    setLocationError("");
+    setLocationStatus("Requesting your location...");
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          setLocationStatus("Searching for hospitals near you...");
+          const results = await loadNearbyHospitals(coords.latitude, coords.longitude);
+          setHospitals(results);
+          setLocationStatus(
+            results.length
+              ? `Showing hospitals found within 2 km of your current location.`
+              : "No hospitals were found within 2 km of your current location."
+          );
+        } catch (error) {
+          setHospitals([]);
+          setLocationError(error instanceof Error ? error.message : "Could not find nearby hospitals.");
+          setLocationStatus("Try again in a moment.");
+        } finally {
+          setSearchingHospitals(false);
+        }
+      },
+      (error) => {
+        const message =
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission was denied. Please allow location access to search nearby hospitals."
+            : "Could not access your location.";
+
+        setHospitals([]);
+        setLocationError(message);
+        setLocationStatus("Location is required to search nearby hospitals.");
+        setSearchingHospitals(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f9f9fc] font-['Inter',sans-serif] text-[#1a1c1e]">
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-[0px_4px_20px_rgba(0,61,92,0.08)]">
@@ -100,36 +223,66 @@ export function LandingPage({
         <div className="mx-auto max-w-[1280px] px-8">
           <div className="mb-6 flex flex-col gap-2">
             <h2 className="font-['Poppins',sans-serif] text-[28px] font-semibold leading-[1.2] text-[#00263c]">
-              Care Map
+              Nearby Hospitals
             </h2>
             <p className="max-w-2xl text-[16px] leading-[1.6] text-[#41474d]">
-              This section is ready for Google Places API integration so you can show nearby hospitals, clinics, and diagnostics centers.
+              Allow location access to find hospitals within a 2 km radius of your current location.
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-[0px_12px_32px_rgba(0,61,92,0.08)]">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 shadow-[0px_12px_32px_rgba(0,61,92,0.08)]">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#00263c]">Google Places Map</p>
-                <p className="text-xs text-slate-500">Replace this container with your map script and search results.</p>
+                <p className="text-lg font-semibold text-[#00263c]">Geoapify Places Search</p>
+                <p className="mt-1 text-sm text-slate-500">{locationStatus}</p>
               </div>
-              <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                API Ready
-              </div>
+              <Button
+                className="rounded-lg bg-[#00263c] px-6 py-3 text-sm font-semibold text-white hover:bg-[#003d5c]"
+                onClick={handleFindNearbyHospitals}
+              >
+                {searchingHospitals ? "Finding Hospitals..." : "Use My Location"}
+              </Button>
             </div>
 
-            <div
-              className="flex h-[420px] items-center justify-center bg-[linear-gradient(180deg,#eef5fb_0%,#f8fafc_100%)] text-center"
-              id="google-places-map"
-            >
-              <div className="max-w-md px-6">
-                <p className="font-['Poppins',sans-serif] text-[24px] font-semibold text-[#00263c]">
-                  Map Container
-                </p>
-                <p className="mt-3 text-[15px] leading-[1.6] text-[#41474d]">
-                  Load Google Maps here and use Places search to show nearby healthcare facilities.
-                </p>
+            {locationError ? (
+              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {locationError}
               </div>
+            ) : null}
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {hospitals.length ? (
+                hospitals.map((hospital) => (
+                  <div
+                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                    key={hospital.id}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="font-['Poppins',sans-serif] text-xl font-semibold text-[#00263c]">
+                          {hospital.name}
+                        </h3>
+                        <p className="mt-2 text-sm leading-6 text-slate-600">{hospital.address}</p>
+                      </div>
+                      <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-[#003D5C]">
+                        {formatDistance(hospital.distance)}
+                      </span>
+                    </div>
+                    <a
+                      className="mt-4 inline-flex text-sm font-semibold text-[#1e638f] hover:text-[#003D5C]"
+                      href={`https://www.openstreetmap.org/?mlat=${hospital.lat}&mlon=${hospital.lon}#map=16/${hospital.lat}/${hospital.lon}`}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      View on map
+                    </a>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center text-slate-500 md:col-span-2">
+                  Nearby hospitals will appear here after location access is granted.
+                </div>
+              )}
             </div>
           </div>
         </div>
