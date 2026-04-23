@@ -347,22 +347,20 @@ export function InsurancePage({
 
             <nav className="hidden items-center gap-8 md:flex">
               <button
-                className={`h-16 border-b-2 pb-1 text-sm font-medium transition-colors ${
-                  activeView === "dashboard"
-                    ? "border-blue-900 text-blue-900"
-                    : "border-transparent text-slate-500 hover:text-blue-700"
-                }`}
+                className={`h-16 border-b-2 pb-1 text-sm font-medium transition-colors ${activeView === "dashboard"
+                  ? "border-blue-900 text-blue-900"
+                  : "border-transparent text-slate-500 hover:text-blue-700"
+                  }`}
                 onClick={() => setActiveView("dashboard")}
                 type="button"
               >
                 Dashboard
               </button>
               <button
-                className={`h-16 border-b-2 pb-1 text-sm font-medium transition-colors ${
-                  activeView === "reports"
-                    ? "border-blue-900 text-blue-900"
-                    : "border-transparent text-slate-500 hover:text-blue-700"
-                }`}
+                className={`h-16 border-b-2 pb-1 text-sm font-medium transition-colors ${activeView === "reports"
+                  ? "border-blue-900 text-blue-900"
+                  : "border-transparent text-slate-500 hover:text-blue-700"
+                  }`}
                 onClick={() => setActiveView("reports")}
                 type="button"
               >
