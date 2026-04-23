@@ -65,34 +65,23 @@ export function LandingPage({
   const [userCoordinates, setUserCoordinates] = useState<UserCoordinates | null>(null);
 
   const staticMapUrl = useMemo(() => {
-    if (!env.geoapifyApiKey || !userCoordinates) {
+    if (!userCoordinates) {
       return "";
     }
 
-    const visibleHospitals = hospitals.slice(0, 8);
-    const markerEntries = [
-      `lonlat:${userCoordinates.lon},${userCoordinates.lat};type:material;color:%2300263c;size:small;text:U;whitecircle:no`,
-      ...visibleHospitals.map(
-        (hospital, index) =>
-          `lonlat:${hospital.lon},${hospital.lat};type:material;color:%231e638f;size:small;text:${index + 1};whitecircle:no`
-      )
-    ];
+    const latitudeDelta = 0.02;
+    const longitudeDelta = 0.02;
+    const bbox = [
+      userCoordinates.lon - longitudeDelta,
+      userCoordinates.lat - latitudeDelta,
+      userCoordinates.lon + longitudeDelta,
+      userCoordinates.lat + latitudeDelta
+    ]
+      .map((value) => value.toFixed(6))
+      .join("%2C");
 
-    const params = new URLSearchParams({
-      apiKey: env.geoapifyApiKey,
-      format: "png",
-      height: "420",
-      marker: markerEntries.join("|"),
-      scaleFactor: "2",
-      style: "osm-bright",
-      width: "1200",
-      zoom: visibleHospitals.length ? "14" : "15"
-    });
-
-    params.set("center", `lonlat:${userCoordinates.lon},${userCoordinates.lat}`);
-
-    return `https://maps.geoapify.com/v1/staticmap?${params.toString()}`;
-  }, [hospitals, userCoordinates]);
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${userCoordinates.lat.toFixed(6)}%2C${userCoordinates.lon.toFixed(6)}`;
+  }, [userCoordinates]);
 
   async function loadNearbyHospitals(latitude: number, longitude: number) {
     if (!env.geoapifyApiKey) {
@@ -296,15 +285,17 @@ export function LandingPage({
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:col-span-2">
                 {staticMapUrl ? (
                   <>
-                    <img
-                      alt="Map showing your location and nearby hospitals"
-                      className="h-[420px] w-full object-cover"
+                    <iframe
+                      className="h-[420px] w-full border-0"
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
                       src={staticMapUrl}
+                      title="Map showing your location and nearby hospitals"
                     />
                     <div className="flex flex-col gap-2 border-t border-slate-200 px-4 py-3 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
-                      <p>Your location is marked as "You". Nearby hospitals are numbered on the map.</p>
+                      <p>The map is centered on your current location. Nearby hospitals are listed below.</p>
                       <p>
-                        Powered by Geoapify, © OpenStreetMap contributors
+                        Powered by OpenStreetMap contributors
                       </p>
                     </div>
                   </>
