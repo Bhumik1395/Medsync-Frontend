@@ -226,7 +226,7 @@ export function PatientPage({
             </section>
 
             <section className="grid gap-6 pb-12">
-              <div className="grid gap-6 xl:grid-cols-[280px_1fr]">
+              <div className="grid gap-6 xl:justify-center xl:grid-cols-[280px_40%]">
                 <div>
                   <h3 className="mb-4 text-2xl font-semibold text-brand-blue">Recent Reports</h3>
                   <Card className="mb-4 rounded-3xl p-4">
@@ -341,7 +341,7 @@ export function PatientPage({
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap justify-center gap-3">
+                        <div className="mb-6 flex flex-wrap justify-center gap-3">
                           <Button className="gap-2 px-5 py-3" onClick={() => onDownloadReport(selectedReport.id)}>
                             <Download size={16} />
                             Download PDF
