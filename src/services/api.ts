@@ -2,7 +2,7 @@ import { env } from "../config/env";
 
 type RequestOptions = {
   body?: unknown;
-  method?: "GET" | "POST";
+  method?: "DELETE" | "GET" | "POST";
   token?: string | null;
 };
 
@@ -30,4 +30,8 @@ export function apiGet(path: string, token?: string | null) {
 
 export function apiPost(path: string, body: unknown, token?: string | null) {
   return apiRequest(path, { body, method: "POST", token });
+}
+
+export function apiDelete(path: string, token?: string | null) {
+  return apiRequest(path, { method: "DELETE", token });
 }
