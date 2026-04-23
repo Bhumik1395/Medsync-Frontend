@@ -133,12 +133,12 @@ export function PatientPage({
     }
   }, [filteredReports, onSelectReport, selectedReportId]);
 
-  const recentVisit = patientProfile?.appointments[0]?.date
-    ? new Date(patientProfile.appointments[0].date).toLocaleDateString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    })
+  const recentVisit = reports[0]?.createdAt
+    ? new Date(reports[0].createdAt).toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })
     : "Not set";
 
   function updateProfileField(field: keyof typeof profileForm, value: string) {
@@ -458,12 +458,6 @@ export function PatientPage({
                   </p>
 
                   <div className="mt-8 space-y-3 text-left">
-                    <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
-                      <span className="text-xs font-semibold tracking-[0.15em] text-app-text-secondary">STATUS</span>
-                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-bold tracking-[0.15em] text-emerald-700">
-                        ACTIVE
-                      </span>
-                    </div>
                     <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
                       <span className="text-xs font-semibold tracking-[0.15em] text-app-text-secondary">LAST VISIT</span>
                       <span className="text-lg text-app-text">{recentVisit}</span>
