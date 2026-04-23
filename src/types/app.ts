@@ -75,6 +75,12 @@ export type InsuranceRecord = {
   status: string;
 };
 
+export type InsuranceProvider = {
+  email: string;
+  id: string;
+  name: string;
+};
+
 export type ToastState = {
   message: string;
   title: string;
