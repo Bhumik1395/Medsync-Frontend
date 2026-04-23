@@ -13,8 +13,7 @@ import {
   Phone,
   Plus,
   Share2,
-  Sparkles,
-  Tag
+  Sparkles
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -99,7 +98,6 @@ export function PatientPage({
         year: "numeric"
       })
     : "Not set";
-  const quickTags = patientProfile?.history.length ? patientProfile.history.slice(0, 2) : [];
 
   function updateProfileField(field: keyof typeof profileForm, value: string) {
     setProfileForm((current) => ({ ...current, [field]: value }));
@@ -489,31 +487,6 @@ export function PatientPage({
                   </div>
                 </Card>
 
-                <Card className="rounded-3xl p-7">
-                  <h3 className="flex items-center gap-2 text-2xl font-semibold text-brand-blue">
-                    <Tag className="text-brand-blue" size={20} />
-                    Quick Tags
-                  </h3>
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    {quickTags.map((tag) => (
-                      <span
-                        className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-2 text-sm text-brand-blue"
-                        key={tag}
-                      >
-                        {tag}
-                        <span aria-hidden="true">x</span>
-                      </span>
-                    ))}
-                    {!quickTags.length ? <p className="text-sm text-app-text-secondary">No tags yet.</p> : null}
-                    <button
-                      className="inline-flex items-center gap-2 rounded-full border-2 border-dashed border-app-border px-4 py-2 text-sm text-app-text-secondary transition-colors hover:bg-slate-50"
-                      type="button"
-                    >
-                      <Plus size={14} />
-                      Add Tag
-                    </button>
-                  </div>
-                </Card>
               </div>
 
               <div className="space-y-6 lg:col-span-8">
