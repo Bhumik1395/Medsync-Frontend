@@ -5,6 +5,7 @@ import {
   Camera,
   ChevronRight,
   ClipboardCheck,
+  Trash2,
   Download,
   FileText,
   HeartPulse,
@@ -25,6 +26,7 @@ import type { PatientProfile, Report, ToastState, User } from "../types/app";
 type PatientPageProps = {
   activeSection: "dashboard" | "profile";
   onDownloadReport: (reportId: string) => void;
+  onDeleteReport: (reportId: string) => void;
   onGenerateSummary: (reportId: string) => void;
   onLogout: () => void;
   onNavigateHome: () => void;
@@ -51,6 +53,7 @@ type PatientPageProps = {
 export function PatientPage({
   activeSection,
   onDownloadReport,
+  onDeleteReport,
   onGenerateSummary,
   onLogout,
   onNavigateHome,
@@ -331,6 +334,14 @@ export function PatientPage({
                           <Button className="gap-2 px-5 py-3" onClick={() => onDownloadReport(selectedReport.id)}>
                             <Download size={16} />
                             Download PDF
+                          </Button>
+                          <Button
+                            className="gap-2 px-5 py-3"
+                            onClick={() => onDeleteReport(selectedReport.id)}
+                            variant="secondary"
+                          >
+                            <Trash2 size={16} />
+                            Delete Report
                           </Button>
                           <Button
                             className="gap-2 px-5 py-3"
