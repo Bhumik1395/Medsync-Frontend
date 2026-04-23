@@ -340,19 +340,11 @@ export function PatientPage({
                             <Trash2 size={16} />
                             Delete Report
                           </Button>
-                          <Button
-                            className="gap-2 px-5 py-3"
-                            onClick={() => handleForwardToInsurance(selectedReport.id)}
-                            variant="secondary"
-                          >
-                            <Share2 size={16} />
-                            Forward To Insurance
-                          </Button>
                         </div>
-                        <div className="rounded-3xl border border-app-border bg-slate-50 p-5">
+                        <div className="rounded-3xl border border-app-border bg-slate-50 p-5 text-center">
                           <p className="text-sm font-semibold text-brand-blue">Insurance Forwarding</p>
                           <select
-                            className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                            className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 text-center outline-none transition focus:border-brand-blue"
                             onChange={(event) => setSelectedInsuranceId(event.target.value)}
                             value={selectedInsuranceId}
                           >
@@ -364,11 +356,19 @@ export function PatientPage({
                             ))}
                           </select>
                           <input
-                            className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
+                            className="mt-3 w-full rounded-2xl border border-app-border bg-white px-4 py-3 text-center outline-none transition focus:border-brand-blue"
                             onChange={(event) => setPolicyNumber(event.target.value)}
                             placeholder="Enter your policy number"
                             value={policyNumber}
                           />
+                          <Button
+                            className="mt-4 inline-flex gap-2 px-5 py-3"
+                            onClick={() => handleForwardToInsurance(selectedReport.id)}
+                            variant="secondary"
+                          >
+                            <Share2 size={16} />
+                            Forward To Insurance
+                          </Button>
                           {shareError ? <p className="mt-2 text-sm text-status-error">{shareError}</p> : null}
                           <p className="mt-3 text-sm text-app-text-secondary">
                             Select a registered insurance company and provide the matching policy number. Only the
