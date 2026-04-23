@@ -135,10 +135,10 @@ export function PatientPage({
 
   const recentVisit = patientProfile?.appointments[0]?.date
     ? new Date(patientProfile.appointments[0].date).toLocaleDateString("en-US", {
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      })
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    })
     : "Not set";
 
   function updateProfileField(field: keyof typeof profileForm, value: string) {
@@ -216,7 +216,7 @@ export function PatientPage({
                     Welcome back, {patientProfile?.name?.split(" ")[0] || user.name.split(" ")[0]}
                   </h1>
                   <p className="mt-4 text-lg text-sky-100">
-                    {user.email} • Patient ID: {patientProfile?.abhaNumber || "Not set"}
+                    {user.email} • ABHA ID: {patientProfile?.abhaNumber || "Not set"}
                   </p>
                   {pageLoading ? <p className="mt-4 text-sm text-sky-100/90">Loading your dashboard...</p> : null}
                 </div>
@@ -226,11 +226,11 @@ export function PatientPage({
             </section>
 
             <section className="grid gap-6 pb-12">
-              <div className="grid gap-6 xl:justify-center xl:grid-cols-[360px_40%]">
+              <div className="grid gap-6 xl:justify-center xl:grid-cols-[280px_40%]">
                 <div>
                   <h3 className="mb-4 text-2xl font-semibold text-brand-blue">Recent Reports</h3>
                   <Card className="mb-4 rounded-3xl p-4">
-                    <div className="grid gap-3 sm:grid-cols-[2.2fr_1fr_1fr]">
+                    <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr_1fr]">
                       <select
                         className="w-full rounded-2xl border border-app-border bg-white px-4 py-3 outline-none transition focus:border-brand-blue"
                         onChange={(event) => setDoctorFilter(event.target.value)}
@@ -282,11 +282,10 @@ export function PatientPage({
 
                         return (
                           <button
-                            className={`w-full rounded-3xl border p-5 text-left transition-all ${
-                              selectedReportId === report.id
-                                ? "border-brand-blue bg-sky-50"
-                                : "border-app-border bg-white hover:border-brand-blue/50"
-                            }`}
+                            className={`w-full rounded-3xl border p-5 text-left transition-all ${selectedReportId === report.id
+                              ? "border-brand-blue bg-sky-50"
+                              : "border-app-border bg-white hover:border-brand-blue/50"
+                              }`}
                             key={report.id}
                             onClick={() => onSelectReport(report.id)}
                             type="button"
@@ -297,9 +296,8 @@ export function PatientPage({
                                 size={18}
                               />
                               <span
-                                className={`text-xs font-semibold tracking-[0.15em] ${
-                                  selectedReportId === report.id ? "text-brand-blue" : "text-app-text-secondary"
-                                }`}
+                                className={`text-xs font-semibold tracking-[0.15em] ${selectedReportId === report.id ? "text-brand-blue" : "text-app-text-secondary"
+                                  }`}
                               >
                                 {category.tone}
                               </span>
