@@ -327,7 +327,7 @@ export function PatientPage({
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap justify-center gap-3">
                           <Button className="gap-2 px-5 py-3" onClick={() => onDownloadReport(selectedReport.id)}>
                             <Download size={16} />
                             Download PDF
