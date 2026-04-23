@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiGet, apiPost } from "./services/api";
+import { apiDelete, apiGet, apiPost } from "./services/api";
 import type {
   HospitalPatient,
   HospitalPatientPreview,
@@ -273,6 +273,38 @@ export function App() {
     });
   }
 
+  async function handleDeleteReport(reportId: string) {
+    if (!token) {
+      return;
+    }
+
+    try {
+      await apiDelete(`/api/reports/${reportId}`, token);
+      setReports((currentReports) => {
+        const nextReports = currentReports.filter((report) => report.id !== reportId);
+        setSelectedReportId((currentSelectedReportId) => {
+          if (currentSelectedReportId !== reportId) {
+            return currentSelectedReportId;
+          }
+
+          return nextReports[0]?.id || null;
+        });
+        return nextReports;
+      });
+      setToast({
+        message: "The report was deleted successfully.",
+        title: "Report deleted",
+        variant: "success"
+      });
+    } catch (error) {
+      setToast({
+        message: error instanceof Error ? error.message : "Could not delete the report.",
+        title: "Delete failed",
+        variant: "error"
+      });
+    }
+  }
+
   async function handleSavePatientProfile(profile: PatientProfileFormPayload) {
     if (!token) {
       return;
@@ -399,6 +431,7 @@ export function App() {
     return (
       <PatientPage
         activeSection={patientSection}
+        onDeleteReport={handleDeleteReport}
         onDownloadReport={handleDownloadReport}
         onGenerateSummary={handleSummarize}
         onLogout={handleLogout}
