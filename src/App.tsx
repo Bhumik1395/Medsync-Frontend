@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiDelete, apiGet, apiPost } from "./services/api";
+import { apiDelete, apiGet, apiGetFile, apiPost } from "./services/api";
 import type {
   HospitalPatient,
   HospitalPatientPreview,
@@ -265,11 +265,23 @@ export function App() {
       return;
     }
 
-    const payload = await apiGet(`/api/reports/${reportId}/download`, token);
+    const fileResponse = await apiGetFile(`/api/reports/${reportId}/download`, token);
+    const report = reports.find((item) => item.id === reportId);
+    const fileName = fileResponse.fileName || report?.fileName || `report-${reportId}.pdf`;
+    const downloadUrl = window.URL.createObjectURL(fileResponse.blob);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+
     setToast({
-      message: `Download prepared for ${payload.fileName}.`,
+      message: `${fileName} was downloaded successfully.`,
       title: "Download ready",
-      variant: "info"
+      variant: "success"
     });
   }
 
